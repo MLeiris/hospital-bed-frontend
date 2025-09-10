@@ -1,61 +1,92 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { login as loginAPI } from '../api/auth';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { login as loginAPI } from "../api/auth";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 import {
-  Box, Button, Container, TextField, Typography,
-  Paper, CircularProgress
-} from '@mui/material';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 const Login = () => {
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validationSchema = Yup.object({
-    username: Yup.string().required('Username is required'),
-    password: Yup.string().required('Password is required'),
+    username: Yup.string().required("Username is required"),
+    password: Yup.string().required("Password is required"),
   });
 
-const handleSubmit = async (values) => {
-  setIsSubmitting(true);
-  setError('');
+  const handleSubmit = async (values) => {
+    setIsSubmitting(true);
+    setError("");
 
-  try {
-    const data = await loginAPI(values.username, values.password);
+    try {
+      const data = await loginAPI(values.username, values.password);
 
-    if (!data?.token) {
-      throw new Error('Authentication failed: No token received');
+      if (!data?.token) {
+        throw new Error("Authentication failed: No token received");
+      }
+
+      await authLogin(data.token);
+
+      toast.success(`Welcome back, ${data.user?.username || values.username}!`);
+
+      // Optional: redirect by role
+      const role = data.user?.role;
+      if (role === "admin") navigate("/admin");
+      else if (role === "doctor") navigate("/doctor");
+      else if (role === "receptionist") navigate("/receptionist");
+      else navigate("/");
+    } catch (err) {
+      console.error("Login error:", err);
+      const errorMessage =
+        err.message || "Login failed. Please check your credentials.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    await authLogin(data.token);
-    toast.success(`Welcome back, ${data.user?.username || values.username}!`);
-
-  } catch (err) {
-    console.error('Login error:', err);
-    const errorMessage = err.message || 'Login failed. Please check your credentials.';
-    setError(errorMessage);
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
+  };
 
   return (
     <Container maxWidth="xs">
       <ToastContainer position="top-right" autoClose={5000} />
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Typography variant="h5" component="h1" align="center" gutterBottom>
+      <Paper
+        elevation={4}
+        sx={{
+          p: 4,
+          mt: 8,
+          borderRadius: "16px",
+          background: "linear-gradient(to bottom right, #3b82f6, #10b981)",
+          color: "white",
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          align="center"
+          gutterBottom
+          fontWeight="bold"
+        >
           Hospital Bed System
         </Typography>
-        <Typography variant="subtitle1" align="center" gutterBottom>
+        <Typography
+          variant="subtitle1"
+          align="center"
+          gutterBottom
+          sx={{ opacity: 0.9 }}
+        >
           Please sign in
         </Typography>
 
@@ -66,11 +97,18 @@ const handleSubmit = async (values) => {
         )}
 
         <Formik
-          initialValues={{ username: '', password: '' }}
+          initialValues={{ username: "", password: "" }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            handleSubmit,
+          }) => (
             <form onSubmit={handleSubmit}>
               <Box sx={{ mb: 2 }}>
                 <TextField
@@ -83,6 +121,9 @@ const handleSubmit = async (values) => {
                   error={touched.username && Boolean(errors.username)}
                   helperText={touched.username && errors.username}
                   disabled={isSubmitting}
+                  InputProps={{
+                    sx: { backgroundColor: "white", borderRadius: 1 },
+                  }}
                 />
               </Box>
 
@@ -98,6 +139,9 @@ const handleSubmit = async (values) => {
                   error={touched.password && Boolean(errors.password)}
                   helperText={touched.password && errors.password}
                   disabled={isSubmitting}
+                  InputProps={{
+                    sx: { backgroundColor: "white", borderRadius: 1 },
+                  }}
                 />
               </Box>
 
@@ -105,27 +149,32 @@ const handleSubmit = async (values) => {
                 fullWidth
                 type="submit"
                 variant="contained"
-                color="primary"
+                sx={{
+                  height: "48px",
+                  background: "linear-gradient(to right, #2563eb, #059669)",
+                  "&:hover": {
+                    background: "linear-gradient(to right, #1d4ed8, #047857)",
+                  },
+                }}
                 disabled={isSubmitting}
-                sx={{ height: '48px' }}
               >
                 {isSubmitting ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </Button>
             </form>
           )}
         </Formik>
 
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
+        <Box sx={{ mt: 2, textAlign: "center" }}>
           <Button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate("/register")}
             disabled={isSubmitting}
-            color="secondary"
+            sx={{ color: "white", textTransform: "none" }}
           >
-            Don't have an account? Register
+            Don&apos;t have an account? Register
           </Button>
         </Box>
       </Paper>

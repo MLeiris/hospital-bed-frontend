@@ -5,8 +5,6 @@ import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
   LocalHospital as HospitalIcon,
-  Assignment as AssignmentIcon,
-  PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
 
 const Sidebar = () => {

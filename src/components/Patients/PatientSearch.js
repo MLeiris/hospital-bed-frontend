@@ -89,7 +89,7 @@ const PatientSearch = () => {
                 <TableCell>Gender</TableCell>
                 <TableCell>Medical Condition</TableCell>
                 <TableCell>Ward</TableCell>
-                <TableCell>Status</TableCell> {/* Add this column */}
+                <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
