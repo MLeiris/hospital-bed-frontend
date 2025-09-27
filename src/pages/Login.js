@@ -51,9 +51,9 @@ const Login = () => {
       toast.success(`Welcome back, ${data.user?.username || values.username}!`);
 
       const role = data.user?.role;
-      if (role === "admin") navigate("/admin");
-      else if (role === "doctor") navigate("/doctor");
-      else if (role === "receptionist") navigate("/receptionist");
+      if (role === "admin") navigate("/admin/dashboard");
+      else if (role === "doctor") navigate("/doctor/dashboard");
+      else if (role === "receptionist") navigate("/receptionist/dashboard");
       else navigate("/");
     } catch (err) {
       console.error("Login error:", err);

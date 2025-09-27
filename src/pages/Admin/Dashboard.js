@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Grid, Card, CardContent, CircularProgress } from '@mui/material';
+import { Box, Container, Typography, CircularProgress, TextField } from '@mui/material';
 import { getWardStats } from '../../api/wards';
 import WardList from '../../components/Wards/WardList';
 import WardForm from '../../components/Wards/WardForm';
+import WardGauge from '../../components/Wards/WardGauge';
 
 const AdminDashboard = () => {
   const [wardStats, setWardStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,6 +30,10 @@ const AdminDashboard = () => {
     setRefresh(prev => !prev);
   };
 
+  const filteredWards = wardStats.filter(ward =>
+    ward.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -41,21 +47,16 @@ const AdminDashboard = () => {
       <Typography variant="h4" gutterBottom>
         Admin Dashboard
       </Typography>
-      
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {wardStats.map((ward) => (
-          <Grid item xs={12} sm={6} md={4} key={ward.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{ward.name}</Typography>
-                <Typography>Capacity: {ward.capacity}</Typography>
-                <Typography>Occupied: {ward.occupied_beds}</Typography>
-                <Typography>Available: {ward.available_beds}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          label="Search Ward"
+          variant="outlined"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          fullWidth
+        />
+      </Box>
       
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom>
@@ -68,7 +69,8 @@ const AdminDashboard = () => {
         <Typography variant="h5" gutterBottom>
           Ward Management
         </Typography>
-        <WardList wards={wardStats} />
+        {/* Pass filteredWards to WardList for search functionality */}
+        <WardList wards={filteredWards} WardGauge={WardGauge} />
       </Box>
     </Container>
   );
