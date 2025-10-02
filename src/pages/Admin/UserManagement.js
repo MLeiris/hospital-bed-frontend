@@ -31,7 +31,7 @@ const UserManagement = () => {
     const fetchUsers = async () => {
       try {
         const response = await getUsers();
-        setUsers(response.data);
+        setUsers(response.data.data);
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {
