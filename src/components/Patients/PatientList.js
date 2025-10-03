@@ -3,16 +3,24 @@ import { dischargePatient } from '../../api/patients';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
-const PatientList = ({ patients, showDischargeAction = false }) => {
+const PatientList = ({ patients, showDischargeAction = false, onDischarge }) => {
   const { token } = useAuth();
 
   const handleDischarge = async (patientId) => {
     try {
+      // 1. Attempt the API call
       await dischargePatient(patientId);
       toast.success('Patient discharged successfully');
-      // In a real app, you would refresh the patient list here
+      
+      // 2. ONLY IF the API call is successful, trigger the parent component to update state
+      if (onDischarge) {
+        onDischarge(patientId);
+      }
+      
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Discharge failed');
+      console.error('Discharge API Error:', error); 
+      // Ensure we display the error if the API failed, preventing onDischarge from running
+      toast.error(error.response?.data?.error || 'Discharge failed. Check console.');
     }
   };
 
@@ -46,7 +54,8 @@ const PatientList = ({ patients, showDischargeAction = false }) => {
                   color={patient.discharged ? 'default' : 'primary'} 
                 />
               </TableCell>
-              {showDischargeAction && !patient.discharged && (
+              {/* Only show the discharge button for non-discharged patients when the action is allowed */}
+              {showDischargeAction && !patient.discharged && ( 
                 <TableCell>
                   <Button 
                     variant="outlined" 
