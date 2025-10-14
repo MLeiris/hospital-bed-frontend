@@ -71,6 +71,7 @@ function App() {
           </Routes>
         </AuthProvider>
       </Router>
+      {/* ToastContainer for pop-up messages */}
       <ToastContainer position="top-right" autoClose={5000} />
     </ThemeProvider>
   );

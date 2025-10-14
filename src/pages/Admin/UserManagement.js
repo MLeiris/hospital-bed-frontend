@@ -1,8 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, Button, TextField, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Box,
+  Container,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
+  Button,
+  TextField,
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip
+} from '@mui/material';
 import { getUsers, deleteUsers } from '../../api/wards';
 import { useAuth } from '../../context/AuthContext';
-import Chip from '@mui/material/Chip';
 import { register } from '../../api/auth';
 
 const roles = [
@@ -52,9 +71,11 @@ const UserManagement = () => {
     setAddError('');
     setAddSuccess('');
     try {
-      const response = await register(newUser.username, newUser.password, newUser.role);
+      await register(newUser.username, newUser.password, newUser.role);
       setAddSuccess('User added successfully!');
-      setUsers((prev) => [...prev, response]);
+      // Refetch users after adding
+      const response = await getUsers();
+      setUsers(response.data.data);
       setNewUser({ username: '', password: '', role: '' });
       setShowForm(false);
     } catch (error) {
@@ -169,17 +190,17 @@ const UserManagement = () => {
                 <TableCell>{user.id}</TableCell>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>
-                  <Chip 
-                    label={user.role} 
+                  <Chip
+                    label={user.role}
                     color={
-                      user.role === 'admin' ? 'primary' : 
+                      user.role === 'admin' ? 'primary' :
                       user.role === 'doctor' ? 'secondary' : 'default'
-                    } 
+                    }
                   />
                 </TableCell>
                 <TableCell>
                   <Button size="small" color="error" onClick={() => handleDeleteUser(user.id)}>
-                    Delete
+                    Remove user
                   </Button>
                 </TableCell>
               </TableRow>

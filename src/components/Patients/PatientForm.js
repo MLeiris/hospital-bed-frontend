@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, TextField, Grid, MenuItem, CircularProgress } from '@mui/material';
+import { Button, TextField, Grid, MenuItem, CircularProgress, Alert, Box } from '@mui/material';
 import { registerPatient } from '../../api/patients';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -10,6 +10,7 @@ import axios from 'axios';
 const PatientForm = ({ onPatientRegistered }) => {
   const [wards, setWards] = useState([]);
   const [loadingWards, setLoadingWards] = useState(true);
+  const [wardError, setWardError] = useState('');
   const { token } = useAuth();
 
   const validationSchema = Yup.object({
@@ -36,14 +37,75 @@ const PatientForm = ({ onPatientRegistered }) => {
     fetchWards();
   }, [token]);
 
+  // Custom toast for ward full error
+  const showWardFullError = (wardName) => {
+    toast.error(`"${wardName}" has no available beds!`, {
+      position: "top-center",
+      autoClose: 6000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      style: { 
+        backgroundColor: '#f44336', 
+        color: 'white',
+        fontSize: '16px',
+        fontWeight: 'bold',
+        border: '2px solid #d32f2f'
+      },
+      progressStyle: {
+        background: '#ffebee'
+      }
+    });
+  };
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    setWardError('');
+
     try {
       const response = await registerPatient(values);
+      
+      // Show success toast with custom styling
+      toast.success(`Patient "${values.name}" registered successfully!`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: { 
+          backgroundColor: '#4caf50', 
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      });
+
       onPatientRegistered(response.data);
       resetForm();
-      toast.success('Patient registered successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Registration failed');
+      // Handle backend validation errors for no available beds
+      if (error.response?.status === 400 && error.response?.data?.error?.includes('No available beds')) {
+        const errorMessage = error.response.data.error;
+        setWardError(errorMessage);
+        showWardFullError(values.ward_name);
+      } else {
+        const backendError =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          error.message ||
+          'Registration failed';
+        
+        toast.error(backendError, {
+          position: "top-right",
+          autoClose: 5000,
+          style: { 
+            backgroundColor: '#ff9800', 
+            color: 'white',
+            fontSize: '14px'
+          }
+        });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -72,6 +134,23 @@ const PatientForm = ({ onPatientRegistered }) => {
       }) => (
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
+            {/* Ward Error Alert */}
+            {wardError && (
+              <Grid item xs={12}>
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 2,
+                    border: '1px solid #f44336',
+                    backgroundColor: '#ffebee',
+                    '& .MuiAlert-icon': { color: '#d32f2f' }
+                  }}
+                >
+                  <strong>No Available Beds!</strong> {wardError}
+                </Alert>
+              </Grid>
+            )}
+            
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -132,7 +211,10 @@ const PatientForm = ({ onPatientRegistered }) => {
               >
                 {loadingWards ? (
                   <MenuItem value="">
-                    <CircularProgress size={20} />
+                    <Box display="flex" alignItems="center">
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      Loading wards...
+                    </Box>
                   </MenuItem>
                 ) : (
                   wards.map((ward) => (
@@ -165,8 +247,16 @@ const PatientForm = ({ onPatientRegistered }) => {
                 variant="contained"
                 color="primary"
                 disabled={isSubmitting || loadingWards}
+                sx={{ 
+                  mt: 2,
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+                startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
               >
-                Register Patient
+                {isSubmitting ? 'Registering Patient...' : 'Register Patient'}
               </Button>
             </Grid>
           </Grid>
