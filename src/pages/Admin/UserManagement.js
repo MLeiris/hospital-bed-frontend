@@ -23,6 +23,7 @@ import {
 import { getUsers, deleteUsers } from '../../api/wards';
 import { useAuth } from '../../context/AuthContext';
 import { register } from '../../api/auth';
+import UserActivityLogs from '../../components/Admin/UserActivityLogs';
 
 const roles = [
   { value: 'admin', label: 'Admin' },
@@ -33,7 +34,7 @@ const roles = [
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { hasRole } = useAuth();
+  const { hasRole, token } = useAuth();
 
   // Add user form state
   const [newUser, setNewUser] = useState({
@@ -45,6 +46,9 @@ const UserManagement = () => {
   const [addError, setAddError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
   const [showForm, setShowForm] = useState(false);
+
+  // Activity logs state
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -202,12 +206,29 @@ const UserManagement = () => {
                   <Button size="small" color="error" onClick={() => handleDeleteUser(user.id)}>
                     Remove user
                   </Button>
+                  <Button
+                    size="small"
+                    sx={{ ml: 1 }}
+                    variant="outlined"
+                    onClick={() => setSelectedUserId(user.id)}
+                  >
+                    View Activity
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Show activity logs for selected user */}
+      {selectedUserId && (
+        <UserActivityLogs
+          userId={selectedUserId}
+          token={token}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </Container>
   );
 };
