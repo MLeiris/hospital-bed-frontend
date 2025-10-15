@@ -12,11 +12,13 @@ const WardForm = ({ onWardCreated }) => {
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const response = await createWard(values);
+      // FIX APPLIED: Removed 'const response =' to eliminate the no-unused-vars warning
+      await createWard(values); 
       onWardCreated();
       resetForm();
       toast.success('Ward created successfully!');
     } catch (error) {
+      // Assuming 'error' might be an AxiosError or similar structure
       toast.error(error.response?.data?.error || 'Failed to create ward');
     } finally {
       setSubmitting(false);
