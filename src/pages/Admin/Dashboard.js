@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // Added useCallback for better performance
 import { Box, Container, Typography, CircularProgress, TextField } from '@mui/material';
 import { getWardStats } from '../../api/wards';
 import WardList from '../../components/Wards/WardList';
@@ -8,26 +8,29 @@ import WardGauge from '../../components/Wards/WardGauge';
 const AdminDashboard = () => {
   const [wardStats, setWardStats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(false);
+  const [refresh, setRefresh] = useState(false); // Used to force a data fetch
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getWardStats();
-        setWardStats(response.data);
-      } catch (error) {
-        console.error('Error fetching ward stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use useCallback to memoize the fetch function
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getWardStats();
+      setWardStats(response.data);
+    } catch (error) {
+      console.error('Error fetching ward stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // Dependencies are empty as it relies only on API call
 
+  useEffect(() => {
     fetchData();
-  }, [refresh]);
+  }, [fetchData, refresh]); // Reruns when fetchData changes OR when 'refresh' is toggled
 
   const handleWardCreated = () => {
-    setRefresh(prev => !prev);
+    // Toggles the refresh state to trigger the useEffect, forcing the list to update
+    setRefresh(prev => !prev); 
   };
 
   const filteredWards = wardStats.filter(ward =>
@@ -69,7 +72,6 @@ const AdminDashboard = () => {
         <Typography variant="h5" gutterBottom>
           Ward Management
         </Typography>
-        {/* Pass filteredWards to WardList for search functionality */}
         <WardList wards={filteredWards} WardGauge={WardGauge} />
       </Box>
     </Container>
